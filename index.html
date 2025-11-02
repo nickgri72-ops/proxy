@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Personal Proxy</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 24px; max-width:900px; margin:auto; }
+    input[type="text"]{ width:80%; padding:8px; margin-right:8px; }
+    button{ padding:8px 12px; }
+    #output{ margin-top:18px; border:1px solid #ddd; padding:12px; white-space:pre-wrap; max-height:60vh; overflow:auto; }
+  </style>
+</head>
+<body>
+  <h1>Personal Proxy (secured)</h1>
+  <p>Only works for whitelisted hosts and requires a secret key configured on the server.</p>
+
+  <div>
+    <input id="url" type="text" placeholder="https://example.com" />
+    <button id="go">Go</button>
+  </div>
+
+  <div style="margin-top:8px;">
+    <label>Proxy Key (kept only in your browser session):</label><br/>
+    <input id="key" type="password" placeholder="paste your proxy key here" style="width:90%; padding:6px; margin-top:4px;" />
+  </div>
+
+  <div id="status" style="margin-top:12px; color:#555"></div>
+  <div id="output"></div>
+
+  <script>
+    const go = document.getElementById('go');
+    const out = document.getElementById('output');
+    const status = document.getElementById('status');
+
+    go.onclick = async () => {
+      out.textContent = '';
+      status.textContent = '';
+      const url = document.getElementById('url').value.trim();
+      const key = document.getElementById('key').value.trim();
+      if (!url) return alert('Enter a URL');
+      if (!key) return alert('Enter your proxy key');
+
+      status.textContent = 'Fetching...';
+      try {
+        const apiUrl = '/api/proxy?url=' + encodeURIComponent(url);
+        const resp = await fetch(apiUrl, { headers: { 'x-proxy-key': key } });
+        status.textContent = `Status: ${resp.status}`;
+        const text = await resp.text();
+        out.textContent = text.slice(0, 200000); // limit to first chunk
+        if (resp.status >= 400) {
+          status.textContent += ' — error';
+        }
+      } catch (err) {
+        status.textContent = 'Fetch failed';
+        out.textContent = String(err);
+      }
+    };
+  </script>
+</body>
+</html>
