@@ -1,61 +1,61 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>My Personal Proxy</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start Page</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 24px; max-width:900px; margin:auto; }
-    input[type="text"]{ width:80%; padding:8px; margin-right:8px; }
-    button{ padding:8px 12px; }
-    #output{ margin-top:18px; border:1px solid #ddd; padding:12px; white-space:pre-wrap; max-height:60vh; overflow:auto; }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      flex-direction: column;
+    }
+    input[type="text"] {
+      width: 400px;
+      max-width: 90%;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
-  <h1>Personal Proxy (secured)</h1>
-  <p>Only works for whitelisted hosts and requires a secret key configured on the server.</p>
-
-  <div>
-    <input id="url" type="text" placeholder="https://example.com" />
-    <button id="go">Go</button>
-  </div>
-
-  <div style="margin-top:8px;">
-    <label>Proxy Key (kept only in your browser session):</label><br/>
-    <input id="key" type="password" placeholder="paste your proxy key here" style="width:90%; padding:6px; margin-top:4px;" />
-  </div>
-
-  <div id="status" style="margin-top:12px; color:#555"></div>
-  <div id="output"></div>
+  <input type="text" id="urlInput" placeholder="Type a website URL (e.g., https://example.com)">
+  <button onclick="goToSite()">Go</button>
 
   <script>
-    const go = document.getElementById('go');
-    const out = document.getElementById('output');
-    const status = document.getElementById('status');
+    function goToSite() {
+      const url = document.getElementById('urlInput').value;
+      if (!url) return;
+      // Add https:// if user doesn't type it
+      const fullUrl = url.startsWith('http://') || url.startsWith('https://') ? url : 'https://' + url;
+      window.location.href = fullUrl;
+    }
 
-    go.onclick = async () => {
-      out.textContent = '';
-      status.textContent = '';
-      const url = document.getElementById('url').value.trim();
-      const key = document.getElementById('key').value.trim();
-      if (!url) return alert('Enter a URL');
-      if (!key) return alert('Enter your proxy key');
-
-      status.textContent = 'Fetching...';
-      try {
-        const apiUrl = '/api/proxy?url=' + encodeURIComponent(url);
-        const resp = await fetch(apiUrl, { headers: { 'x-proxy-key': key } });
-        status.textContent = `Status: ${resp.status}`;
-        const text = await resp.text();
-        out.textContent = text.slice(0, 200000); // limit to first chunk
-        if (resp.status >= 400) {
-          status.textContent += ' — error';
-        }
-      } catch (err) {
-        status.textContent = 'Fetch failed';
-        out.textContent = String(err);
-      }
-    };
+    // Allow pressing Enter to go
+    document.getElementById('urlInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') goToSite();
+    });
   </script>
 </body>
 </html>
