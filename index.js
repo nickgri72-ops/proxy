@@ -1,19 +1,16 @@
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
 
-// Start page
+// Use Render's dynamic port
+const PORT = process.env.PORT || 3000;
+
+// Serve the start page
 app.get('/', (req, res) => {
-    res.send(`
-      <h1>Proxy Start Page</h1>
-      <form action="/proxy" method="GET">
-        <input name="url" placeholder="Enter site URL" required />
-        <button type="submit">Go</button>
-      </form>
-    `);
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Proxy route
@@ -22,10 +19,12 @@ app.get('/proxy', async (req, res) => {
     if (!url) return res.send("No URL provided");
 
     try {
-        const response = await axios.get(url);
+        const response = await axios.get(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0' } // pretend to be a browser
+        });
         let html = response.data;
 
-        // Use Cheerio to rewrite links
+        // Rewrite links so they go through the proxy
         const $ = cheerio.load(html);
 
         $('a').each((i, el) => {
@@ -45,8 +44,4 @@ app.get('/proxy', async (req, res) => {
 
         res.send($.html());
     } catch (err) {
-        res.send("Error fetching site: " + err.message);
-    }
-});
-
-app.listen(PORT, () => console.log(`Proxy running on http://localhost:${PORT}`));
+        res.send("Error fet
