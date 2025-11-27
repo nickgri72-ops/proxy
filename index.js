@@ -1,33 +1,52 @@
 const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
-const path = require('path');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 const app = express();
 const PORT = 3000;
 
-// Serve the start page
+// Start page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.send(`
+      <h1>Proxy Start Page</h1>
+      <form action="/proxy" method="GET">
+        <input name="url" placeholder="Enter site URL" required />
+        <button type="submit">Go</button>
+      </form>
+    `);
 });
 
-// Proxy any user-entered URL
-app.get('/proxy', (req, res, next) => {
+// Proxy route
+app.get('/proxy', async (req, res) => {
     const url = req.query.url;
     if (!url) return res.send("No URL provided");
 
-    createProxyMiddleware({
-        target: url,
-        changeOrigin: true,
-        selfHandleResponse: true,
-        onProxyRes: (proxyRes, req2, res2) => {
-            let body = [];
-            proxyRes.on('data', chunk => body.push(chunk));
-            proxyRes.on('end', () => {
-                body = Buffer.concat(body).toString();
-                res2.send(body);
-            });
-        }
-    })(req, res, next);
+    try {
+        const response = await axios.get(url);
+        let html = response.data;
+
+        // Use Cheerio to rewrite links
+        const $ = cheerio.load(html);
+
+        $('a').each((i, el) => {
+            const href = $(el).attr('href');
+            if (href && !href.startsWith('#')) {
+                $(el).attr('href', `/proxy?url=${new URL(href, url).href}`);
+            }
+        });
+
+        $('img, script, link').each((i, el) => {
+            const attr = $(el).attr('src') ? 'src' : 'href';
+            const val = $(el).attr(attr);
+            if (val && !val.startsWith('#')) {
+                $(el).attr(attr, `/proxy?url=${new URL(val, url).href}`);
+            }
+        });
+
+        res.send($.html());
+    } catch (err) {
+        res.send("Error fetching site: " + err.message);
+    }
 });
 
 app.listen(PORT, () => console.log(`Proxy running on http://localhost:${PORT}`));
