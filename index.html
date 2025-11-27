@@ -1,61 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Start Page</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #f5f5f5;
-      font-family: Arial, sans-serif;
-      flex-direction: column;
-    }
-    input[type="text"] {
-      width: 400px;
-      max-width: 90%;
-      padding: 12px 16px;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      outline: none;
-      margin-bottom: 12px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+  <title>Proxy Start Page</title>
 </head>
 <body>
-  <input type="text" id="urlInput" placeholder="Type a website URL (e.g., https://example.com)">
-  <button onclick="goToSite()">Go</button>
-
-  <script>
-    function goToSite() {
-      const url = document.getElementById('urlInput').value;
-      if (!url) return;
-      // Add https:// if user doesn't type it
-      const fullUrl = url.startsWith('http://') || url.startsWith('https://') ? url : 'https://' + url;
-      window.location.href = fullUrl;
-    }
-
-    // Allow pressing Enter to go
-    document.getElementById('urlInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') goToSite();
-    });
-  </script>
+  <h1>Enter a URL to visit through the proxy</h1>
+  <form action="/proxy" method="GET">
+    <input name="url" placeholder="Enter site URL" required />
+    <button type="submit">Go</button>
+  </form>
 </body>
 </html>
